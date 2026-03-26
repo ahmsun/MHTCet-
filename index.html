@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MHT-CET Ultimate Pro</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:white;
+  background:linear-gradient(-45deg,#ff6ec4,#7873f5,#4facfe,#43e97b);
+  background-size:400% 400%;
+  animation:bg 10s infinite;
+}
+
+@keyframes bg{
+  0%{background-position:0%}
+  50%{background-position:100%}
+  100%{background-position:0%}
+}
+
+.container{
+  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,0.1);
+  padding:25px;
+  border-radius:20px;
+  width:360px;
+  text-align:center;
+}
+
+/* 🔥 INSTAGRAM HEADER */
+.insta-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:linear-gradient(90deg,#feda75,#d62976,#962fbf);
+  padding:12px;
+  border-radius:15px;
+  margin-bottom:15px;
+}
+
+.insta-info h3{font-size:14px;}
+.insta-info p{font-size:11px;}
+
+.username{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+.badge{
+  background:#0095f6;
+  color:white;
+  font-size:10px;
+  padding:2px 5px;
+  border-radius:50%;
+}
+
+.follow-btn{
+  background:#0095f6;
+  color:white;
+  padding:6px 12px;
+  border-radius:8px;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.follow-btn:hover{
+  background:#1877f2;
+  transform:scale(1.05);
+}
+
+select,button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:10px;
+  border:none;
+}
+
+button{
+  background:#ff6ec4;
+  color:white;
+  cursor:pointer;
+}
+
+.option{
+  background:rgba(255,255,255,0.2);
+  padding:10px;
+  margin:8px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.correct{background:#22c55e!important;}
+.wrong{background:#ef4444!important;}
+.hidden{display:none;}
+
+#timer{font-weight:bold;margin:10px;}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="insta-header">
+    <div class="insta-info">
+      <h3 class="username">
+        👤 Shaikh Ahetesham 
+        <span class="badge">✔</span>
+      </h3>
+      <p>🎬 Anime Edits | 👥 4K Followers</p>
+      <p>@anime_tk_ctrl</p>
+    </div>
+    <a href="https://instagram.com/anime_tk_ctrl" target="_blank">
+      <button class="follow-btn">Follow</button>
+    </a>
+  </div>
+
+  <h2>🔥 MHT-CET PRO MAX</h2>
+
+  <!-- ✅ Subjects Updated -->
+  <select id="subject" onchange="loadChapters()">
+    <option value="">Select Subject</option>
+    <option value="physics">Physics</option>
+    <option value="chemistry">Chemistry</option>
+    <option value="biology">Biology</option>
+  </select>
+
+  <select id="chapter">
+    <option value="">Select Chapter</option>
+  </select>
+
+  <button onclick="startQuiz()">Start Quiz</button>
+
+  <div id="quizBox" class="hidden">
+    <div id="timer">Time: 30</div>
+    <h3 id="question"></h3>
+    <div id="options"></div>
+    <button onclick="nextQuestion()">Next</button>
+    <h3 id="score"></h3>
+    <h3 id="rank"></h3>
+  </div>
+</div>
+
+<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<script>
+
+// 🧠 UPDATED DATA
+let data = {
+  physics:{
+    kinematics:[
+      {q:"Acceleration?", options:["Rate of velocity change","Speed","Force","Mass"], ans:0},
+      {q:"Unit of velocity?", options:["m/s","kg","N","J"], ans:0}
+    ]
+  },
+
+  chemistry:{
+    mole:[
+      {q:"1 mole?", options:["6.022×10^23","1000","1","10"], ans:0}
+    ]
+  },
+
+  // ✅ BIOLOGY ADDED
+  biology:{
+    B1:[
+
+{q:"Mendel selected pea plants mainly because:",options:["They have long life cycle","They show continuous variation","They have clear contrasting traits","They reproduce only asexually"],ans:2},
+{q:"Law of segregation is based on:",options:["Linkage","Independent assortment","Separation of alleles during gamete formation","Mutation"],ans:2},
+{q:"Test cross is used to determine:",options:["Phenotype","Genotype","Dominance","Mutation"],ans:1},
+{q:"In incomplete dominance, phenotypic ratio in F2 is:",options:["3:1","1:2:1","9:3:3:1","2:1"],ans:1},
+{q:"Which is an example of codominance?",options:["Flower color in pea","ABO blood group","Height in humans","Skin color"],ans:1},
+{q:"A dihybrid cross results in phenotypic ratio:",options:["3:1","1:2:1","9:3:3:1","2:2"],ans:2},
+{q:"Linkage was discovered by:",options:["Mendel","Darwin","Morgan","Lamarck"],ans:2},
+{q:"Crossing over occurs during:",options:["Prophase I","Metaphase I","Anaphase I","Telophase I"],ans:0},
+{q:"The unit of heredity is:",options:["Chromosome","DNA","Gene","Allele"],ans:2},
+{q:"Sex-linked traits are mostly seen in:",options:["Females","Males","Both equally","None"],ans:1},
+
+{q:"Haemophilia is:",options:["Autosomal dominant","Autosomal recessive","Sex-linked recessive","Sex-linked dominant"],ans:2},
+{q:"The genotype of a heterozygous individual is:",options:["TT","tt","Tt","None"],ans:2},
+{q:"Phenotype refers to:",options:["Genetic makeup","Observable traits","Allele combination","Mutation"],ans:1},
+{q:"Genotype ratio of monohybrid cross:",options:["3:1","1:2:1","9:3:3:1","2:1"],ans:1},
+{q:"Multiple alleles are found in:",options:["Single gene","Multiple genes","Different species","Chromosomes"],ans:0},
+{q:"Law of independent assortment applies to:",options:["Linked genes","Genes on same chromosome","Genes on different chromosomes","Mitochondrial genes"],ans:2},
+{q:"A carrier is:",options:["Diseased person","Normal but carries gene","Mutated individual","Homozygous dominant"],ans:1},
+{q:"Mutation is:",options:["Normal process","Sudden heritable change","Continuous variation","Adaptation"],ans:1},
+{q:"Turner's syndrome is:",options:["XXY","XO","XXX","YY"],ans:1},
+{q:"Klinefelter syndrome:",options:["XO","XXY","XY","YY"],ans:1},
+
+{q:"Pedigree analysis is used to:",options:["Study evolution","Trace inheritance","Study mutation","Study ecology"],ans:1},
+{q:"In humans, males are:",options:["XX","XY","XO","YY"],ans:1},
+{q:"Down syndrome is caused by:",options:["Monosomy","Trisomy 21","Mutation","Deletion"],ans:1},
+{q:"Pleiotropy means:",options:["One gene → many traits","Many genes → one trait","Mutation","Linkage"],ans:0},
+{q:"Polygenic inheritance shows:",options:["Discontinuous variation","Continuous variation","No variation","Mutation"],ans:1},
+
+/* 🔥 Q26–Q100 ADD */
+{q:"In a test cross, the individual is crossed with:",options:["Homozygous dominant","Homozygous recessive","Heterozygous","Any random plant"],ans:1},
+{q:"Which ratio indicates independent assortment?",options:["3:1","1:2:1","9:3:3:1","2:1"],ans:2},
+{q:"If linkage is complete, crossing over:",options:["Always occurs","Never occurs","Occurs rarely","Occurs in mitosis"],ans:1},
+{q:"The recombination frequency is used to:",options:["Study mutation","Measure genetic distance","Identify phenotype","Study evolution"],ans:1},
+{q:"1% recombination frequency equals:",options:["1 gene","1 map unit","1 chromosome","1 allele"],ans:1},
+{q:"A cross AaBb × AaBb produces how many types of gametes?",options:["2","4","8","16"],ans:1},
+{q:"In ABO blood group, gene ‘I’ has:",options:["Two alleles","Three alleles","Four alleles","Five alleles"],ans:1},
+{q:"Which blood group is universal recipient?",options:["A","B","AB","O"],ans:2},
+{q:"Which is universal donor?",options:["A","B","AB","O"],ans:3},
+{q:"In X-linked inheritance, father passes gene to:",options:["Son","Daughter","Both","None"],ans:1},
+
+{q:"Colour blindness is:",options:["Autosomal","X-linked recessive","Dominant","Y-linked"],ans:1},
+{q:"In pedigree, square represents:",options:["Female","Male","Carrier","Diseased"],ans:1},
+{q:"Circle represents:",options:["Male","Female","Carrier","Mutation"],ans:1},
+{q:"If both parents are carriers (Aa × Aa), probability of affected child:",options:["25%","50%","75%","100%"],ans:0},
+{q:"Epistasis is interaction between:",options:["Alleles of same gene","Genes at different loci","Chromosomes","DNA strands"],ans:1},
+{q:"Phenotypic ratio in recessive epistasis:",options:["9:3:3:1","9:7","9:3:4","12:3:1"],ans:2},
+{q:"Complementary gene interaction ratio:",options:["9:7","9:3:4","12:3:1","15:1"],ans:0},
+{q:"Dominant epistasis ratio:",options:["9:3:3:1","12:3:1","9:7","15:1"],ans:1},
+{q:"Lethal genes modify ratio to:",options:["3:1","2:1","1:2:1","9:3:3:1"],ans:1},
+{q:"Which shows incomplete dominance?",options:["ABO blood group","Snapdragon flower","Pea plant","Humans"],ans:1},
+
+{q:"Crossing over increases:",options:["Mutation","Variation","Linkage","Stability"],ans:1},
+{q:"Y-linked traits are passed from:",options:["Father to son","Mother to daughter","Father to daughter","Mother to son"],ans:0},
+{q:"In human female, Barr body represents:",options:["Active X","Inactive X","Y chromosome","Autosome"],ans:1},
+{q:"Which is chromosomal disorder?",options:["Haemophilia","Colour blindness","Down syndrome","Mutation"],ans:2},
+{q:"Genetic drift is:",options:["Natural selection","Random change in allele frequency","Mutation","Migration"],ans:1},
+
+{q:"A heterozygous tall plant (Tt) is crossed with dwarf (tt). Phenotypic ratio:",options:["3:1","1:1","1:2:1","2:1"],ans:1},
+{q:"In dihybrid cross, number of gamete types from AaBb:",options:["2","4","8","16"],ans:1},
+{q:"Probability of getting homozygous recessive in Aa × Aa:",options:["1/2","1/4","3/4","1/8"],ans:1},
+{q:"If parents are AB × O, possible offspring:",options:["A, B","AB, O","A, B, AB","Only O"],ans:0},
+{q:"Incomplete dominance F1 phenotype:",options:["Dominant","Recessive","Intermediate","None"],ans:2},
+
+{q:"AaBb × aabb test cross gives ratio:",options:["9:3:3:1","1:1:1:1","3:1","2:2"],ans:1},
+{q:"Two genes show 50% recombination → they are:",options:["Linked","Unlinked","Same gene","Mutated"],ans:1},
+{q:"Frequency of recombination cannot exceed:",options:["25%","50%","75%","100%"],ans:1},
+{q:"If gene distance is 10 cM, recombination frequency:",options:["1%","5%","10%","50%"],ans:2},
+{q:"A woman carrier of haemophilia marries normal man. Affected sons:",options:["0%","25%","50%","100%"],ans:2},
+
+{q:"XXY individual shows:",options:["Turner syndrome","Klinefelter syndrome","Down syndrome","Normal male"],ans:1},
+{q:"XO condition leads to:",options:["Male","Female (Turner)","Normal female","Intersex"],ans:1},
+{q:"If a trait appears in every generation → it is:",options:["Recessive","Dominant","Sex-linked","Mutation"],ans:1},
+{q:"A recessive trait skips generations because:",options:["It is lethal","Masked in heterozygous","Mutation","Linkage"],ans:1},
+{q:"Number of possible genotypes in ABO system:",options:["3","4","6","8"],ans:2},
+
+{q:"Polygenic inheritance results in:",options:["One phenotype","Continuous variation","Mutation","Linkage"],ans:1},
+{q:"If parents are heterozygous for 2 traits, probability of double recessive:",options:["1/16","1/4","1/8","3/16"],ans:0},
+{q:"In linkage, genes are located:",options:["Different chromosomes","Same chromosome","RNA","Mitochondria"],ans:1},
+{q:"Crossing over occurs between:",options:["Sister chromatids","Non-sister chromatids","DNA strands","Genes"],ans:1},
+{q:"If recombination is low → genes are:",options:["Far apart","Closely linked","Mutated","Independent"],ans:1},
+
+{q:"Lethal allele causes death in:",options:["Homozygous","Heterozygous","Both","None"],ans:0},
+{q:"Genotype ratio of incomplete dominance:",options:["3:1","1:2:1","2:1","9:3:3:1"],ans:1},
+{q:"A man with blood group B marries O. Child blood groups:",options:["B, O","A, B","AB","O"],ans:0},
+{q:"Sex determination in humans depends on:",options:["Mother","Father","Both","Environment"],ans:1},
+{q:"Barr body count in XXY:",options:["0","1","2","3"],ans:1},
+
+{q:"If a gene shows pleiotropy, it affects:",options:["One trait","Multiple traits","Multiple genes","Chromosomes"],ans:1},
+{q:"In codominance, alleles:",options:["Blend","Both express","One suppresses","Mutate"],ans:1},
+{q:"Phenotypic ratio of codominance in F2:",options:["3:1","1:2:1","9:3:3:1","2:1"],ans:1},
+{q:"If two genes are 5 cM apart → recombination:",options:["5%","10%","50%","1%"],ans:0},
+{q:"A cross results in 2:1 ratio → indicates:",options:["Incomplete dominance","Lethal allele","Codominance","Linkage"],ans:1},
+
+{q:"Test cross of heterozygous gives:",options:["3:1","1:1","1:2:1","9:3:3:1"],ans:1},
+{q:"Probability of dominant for both traits:",options:["9/16","3/16","1/16","1/4"],ans:0},
+{q:"If recombination frequency is 50%, genes:",options:["Linked","Unlinked","Mutated","Same"],ans:1},
+{q:"Multiple alleles example:",options:["Height","ABO blood group","Skin color","Eye color"],ans:1},
+{q:"If a woman is colour blind, her father must be:",options:["Normal","Carrier","Colour blind","Mutated"],ans:2},
+
+{q:"In humans, male genotype:",options:["XX","XY","XO","XXY"],ans:1},
+{q:"A recessive X-linked trait appears more in males because:",options:["Two X","One X","No Y","Mutation"],ans:1},
+{q:"Epistasis involves:",options:["Same gene","Different genes","Chromosomes","Mutation"],ans:1},
+{q:"If ratio is 9:7 → interaction:",options:["Complementary","Dominant epistasis","Recessive epistasis","Linkage"],ans:0},
+{q:"Chromosomal mutation example:",options:["Point","Deletion","Substitution","Insertion"],ans:1},
+
+{q:"Down syndrome karyotype:",options:["45","46","47","48"],ans:2},
+{q:"Turner syndrome individual is:",options:["Male","Female","Both","None"],ans:1},
+{q:"Klinefelter syndrome shows:",options:["XO","XXY","XY","YY"],ans:1},
+{q:"Genetic variation increases due to:",options:["Mutation","Crossing over","Independent assortment","All"],ans:3},
+{q:"Law of dominance applies in:",options:["All traits","Mendelian","Polygenic","Mutation"],ans:1},
+
+{q:"Phenotype depends on:",options:["Genotype","Environment","Both","Mutation"],ans:2},
+{q:"Homozygous dominant genotype:",options:["Aa","aa","AA","None"],ans:2},
+{q:"If parents are Aa × aa, ratio:",options:["3:1","1:1","1:2:1","2:1"],ans:1},
+{q:"Sex-linked genes located on:",options:["Autosomes","Sex chromosomes","RNA","Cytoplasm"],ans:1},
+{q:"Independent assortment occurs due to:",options:["Crossing over","Random orientation","Mutation","Linkage"],ans:1}
+
+],
+    B2:[
+     {q:"Genetic material in most organisms is:", options:["Protein","DNA","RNA","Lipid"], ans:1},
+{q:"DNA structure was discovered by:", options:["Mendel","Darwin","Watson & Crick","Morgan"], ans:2},
+{q:"DNA is made up of:", options:["Amino acids","Nucleotides","Fatty acids","Sugars"], ans:1},
+{q:"A nucleotide consists of:", options:["Sugar + Base + Phosphate","Sugar + Protein","Base + Protein","Lipid + Base"], ans:0},
+{q:"DNA contains which sugar?", options:["Ribose","Deoxyribose","Glucose","Fructose"], ans:1},
+{q:"RNA differs from DNA in:", options:["Sugar","Base","Structure","All of these"], ans:3},
+{q:"Chargaff’s rule states:", options:["A = T, G = C","A = G","T = C","All equal"], ans:0},
+{q:"DNA replication is:", options:["Conservative","Semi-conservative","Dispersive","Random"], ans:1},
+{q:"Enzyme for DNA unwinding:", options:["Ligase","Helicase","Polymerase","Primase"], ans:1},
+{q:"DNA polymerase works in direction:", options:["3'→5'","5'→3'","Both","Random"], ans:1},
+
+{q:"Okazaki fragments are found in:", options:["Leading strand","Lagging strand","RNA","Protein"], ans:1},
+{q:"Ligase joins:", options:["Bases","Okazaki fragments","Proteins","RNA"], ans:1},
+{q:"RNA polymerase is used in:", options:["Replication","Transcription","Translation","Mutation"], ans:1},
+{q:"mRNA carries:", options:["Amino acids","Genetic code","Enzymes","Lipids"], ans:1},
+{q:"tRNA brings:", options:["DNA","Amino acids","Lipids","Enzymes"], ans:1},
+
+{q:"rRNA is part of:", options:["DNA","Ribosome","Nucleus","Protein"], ans:1},
+{q:"Codon is:", options:["2 bases","3 bases","4 bases","1 base"], ans:1},
+{q:"Start codon:", options:["UAA","AUG","UAG","UGA"], ans:1},
+{q:"Stop codons:", options:["AUG","UAA, UAG, UGA","AAA","CCC"], ans:1},
+{q:"Genetic code is:", options:["Overlapping","Non-overlapping","Random","Mutable"], ans:1},
+
+{q:"One codon codes for:", options:["Many amino acids","One amino acid","All proteins","DNA"], ans:1},
+{q:"Mutation is:", options:["Normal","Sudden change in DNA","Continuous variation","Adaptation"], ans:1},
+{q:"Transcription occurs in:", options:["Cytoplasm","Nucleus","Ribosome","Mitochondria"], ans:1},
+{q:"Translation occurs in:", options:["Nucleus","Cytoplasm","DNA","Golgi"], ans:1},
+{q:"Central dogma:", options:["DNA → RNA → Protein","RNA → DNA","Protein → DNA","DNA → Protein"], ans:0},
+
+{q:"Which nitrogen base is absent in RNA?", options:["Adenine","Guanine","Thymine","Cytosine"], ans:2},
+{q:"Hydrogen bonds in A–T pair:", options:["1","2","3","4"], ans:1},
+{q:"Hydrogen bonds in G–C pair:", options:["1","2","3","4"], ans:2},
+{q:"DNA replication occurs in:", options:["G1 phase","S phase","G2 phase","M phase"], ans:1},
+{q:"Enzyme that synthesizes RNA primer:", options:["Ligase","Helicase","Primase","Polymerase"], ans:2},
+
+{q:"Leading strand synthesis is:", options:["Discontinuous","Continuous","Random","Slow"], ans:1},
+{q:"Lagging strand synthesis is:", options:["Continuous","Discontinuous","Faster","Not formed"], ans:1},
+{q:"DNA polymerase cannot start synthesis without:", options:["Template","Primer","Energy","Protein"], ans:1},
+{q:"Template strand is read in direction:", options:["5'→3'","3'→5'","Both","Random"], ans:1},
+{q:"RNA polymerase binds to:", options:["Terminator","Promoter","Operator","Gene"], ans:1},
+
+{q:"Termination of transcription occurs at:", options:["Promoter","Enhancer","Terminator","Operator"], ans:2},
+{q:"Which RNA carries anticodon?", options:["mRNA","rRNA","tRNA","snRNA"], ans:2},
+{q:"Anticodon is present on:", options:["mRNA","tRNA","rRNA","DNA"], ans:1},
+{q:"One amino acid may be coded by:", options:["One codon only","Multiple codons","No codon","Two codons only"], ans:1},
+{q:"Genetic code is:", options:["Ambiguous","Unambiguous","Random","Variable"], ans:1},
+
+{q:"Which process forms mRNA from DNA?", options:["Translation","Replication","Transcription","Mutation"], ans:2},
+{q:"Ribosome is site of:", options:["Replication","Transcription","Translation","Mutation"], ans:2},
+{q:"Polypeptide formation occurs during:", options:["Transcription","Translation","Replication","Mutation"], ans:1},
+{q:"Which enzyme joins Okazaki fragments?", options:["Helicase","Ligase","Primase","Polymerase"], ans:1},
+{q:"DNA replication requires:", options:["Energy","Enzymes","Template","All of these"], ans:3},
+
+{q:"Mutation in a single base pair:", options:["Chromosomal","Point mutation","Frame shift","Deletion"], ans:1},
+{q:"Insertion or deletion causes:", options:["Point mutation","Frame shift mutation","Silent mutation","Duplication"], ans:1},
+{q:"Silent mutation does not change:", options:["DNA","Amino acid","Codon","Gene"], ans:1},
+{q:"Genetic code is nearly:", options:["Universal","Different","Variable","Random"], ans:0},
+{q:"Triplet code proved by:", options:["Watson","Crick","Mendel","Morgan"], ans:1},
+
+{q:"If DNA has 30% adenine, percentage of guanine?", options:["20%","30%","40%","10%"], ans:0},
+  {q:"If A = 25%, then T = ?", options:["25%","50%","75%","10%"], ans:0},
+  {q:"Total purines in DNA?", options:["A + T","G + C","A + G","T + C"], ans:2},
+  {q:"If G = 20%, then C = ?", options:["10%","20%","30%","40%"], ans:1},
+  {q:"If total base pairs = 1000, number of nucleotides?", options:["1000","2000","500","4000"], ans:1},
+  {q:"Number of hydrogen bonds in 100 AT pairs?", options:["100","200","300","400"], ans:1},
+  {q:"Number of hydrogen bonds in 100 GC pairs?", options:["200","300","400","100"], ans:1},
+  {q:"If DNA has 40% GC content, AT content?", options:["60%","40%","20%","80%"], ans:0},
+  {q:"mRNA sequence from DNA template 3'-TAC-5'?", options:["AUG","UAC","ATG","GUA"], ans:0},
+  {q:"Number of codons for 6 amino acids?", options:["3","6","18","2"], ans:1},
+
+  {q:"If mutation changes codon but not amino acid?", options:["Frame shift","Silent mutation","Deletion","Insertion"], ans:1},
+  {q:"Frameshift mutation occurs due to?", options:["Substitution","Deletion/insertion","Duplication","Inversion"], ans:1},
+  {q:"DNA replication doubles DNA from 1 to?", options:["1","2","3","4"], ans:1},
+  {q:"If one DNA replicates twice, number of copies?", options:["2","3","4","8"], ans:2},
+  {q:"Codon AUG codes for?", options:["Stop","Methionine","Glycine","Alanine"], ans:1},
+
+  {q:"Number of stop codons?", options:["1","2","3","4"], ans:2},
+  {q:"Template strand is?", options:["Coding strand","Non-coding strand","RNA","Protein"], ans:1},
+  {q:"Coding strand has same sequence as?", options:["tRNA","mRNA (except T/U)","rRNA","DNA template"], ans:1},
+  {q:"DNA polymerase proofreads using?", options:["3'→5' exonuclease","5'→3' exonuclease","Ligase","Helicase"], ans:0},
+  {q:"Transcription unit includes?", options:["Promoter, structural gene, terminator","Only gene","Only promoter","DNA only"], ans:0},
+
+  {q:"Eukaryotic mRNA processing includes?", options:["Splicing","Capping","Tailing","All of these"], ans:3},
+  {q:"Introns are?", options:["Coding","Non-coding","Amino acids","Proteins"], ans:1},
+  {q:"Exons are?", options:["Non-coding","Coding","DNA only","RNA only"], ans:1},
+  {q:"Operon concept given by?", options:["Mendel","Jacob & Monod","Watson","Crick"], ans:1},
+  {q:"Lac operon is?", options:["Inducible","Repressible","Both","None"], ans:0},
+
+  {q:"In DNA, antiparallel strands mean?", options:["Same direction","Opposite direction","Random direction","Circular structure"], ans:1},
+  {q:"Which bond joins nucleotides?", options:["Hydrogen","Peptide","Phosphodiester","Glycosidic"], ans:2},
+  {q:"Hydrogen bonds are present between?", options:["Sugar-phosphate","Nitrogen bases","Amino acids","Proteins"], ans:1},
+  {q:"DNA packaging unit?", options:["Ribosome","Nucleosome","Chromatid","Gene"], ans:1},
+  {q:"Histone proteins are?", options:["Acidic","Basic","Neutral","Lipids"], ans:1},
+
+  {q:"Euchromatin is?", options:["Inactive DNA","Active DNA","Protein","RNA"], ans:1},
+  {q:"Heterochromatin is?", options:["Active","Inactive","Coding","RNA"], ans:1},
+  {q:"RNA primer is removed by?", options:["Ligase","DNA polymerase I","Helicase","Primase"], ans:1},
+  {q:"DNA ligase forms?", options:["Hydrogen bonds","Phosphodiester bonds","Peptide bonds","Ionic bonds"], ans:1},
+  {q:"Which RNA is most abundant?", options:["mRNA","tRNA","rRNA","snRNA"], ans:2},
+
+  {q:"One gene → one enzyme hypothesis by?", options:["Mendel","Beadle & Tatum","Watson","Crick"], ans:1},
+  {q:"Genetic code is degenerate means?", options:["One codon → many aa","Many codons → one aa","No codon","Random"], ans:1},
+  {q:"Start codon also codes for?", options:["Stop","Methionine","Glycine","Alanine"], ans:1},
+  {q:"Transcription in prokaryotes occurs in?", options:["Nucleus","Cytoplasm","Mitochondria","Ribosome"], ans:1},
+  {q:"Translation requires?", options:["Ribosome","tRNA","mRNA","All"], ans:3},
+
+  {q:"Mutation affecting one amino acid?", options:["Point mutation","Chromosomal","Genome","Duplication"], ans:0},
+  {q:"UV rays cause?", options:["Deletion","Thymine dimer","Duplication","Inversion"], ans:1},
+  {q:"DNA repair mechanism corrects?", options:["Errors","Proteins","Lipids","RNA"], ans:0},
+  {q:"Operator gene in operon?", options:["Starts transcription","Controls transcription","Stops replication","Codes protein"], ans:1},
+  {q:"Repressor protein binds to?", options:["Promoter","Operator","Gene","RNA"], ans:1},
+
+  {q:"Inducer in lac operon?", options:["Glucose","Lactose","Protein","DNA"], ans:1},
+  {q:"If lactose absent, operon is?", options:["ON","OFF","Active","Mutated"], ans:1},
+  {q:"If lactose present, operon is?", options:["OFF","ON","Mutated","Silent"], ans:1},
+  {q:"Genetic code is?", options:["Universal","Overlapping","Ambiguous","Variable"], ans:0},
+  {q:"Central dogma proposed by?", options:["Mendel","Watson","Crick","Darwin"], ans:2}
+]
+  }
+};
+
+function loadChapters(){
+  let s=document.getElementById("subject").value;
+  let ch=document.getElementById("chapter");
+
+  ch.innerHTML='<option>Select Chapter</option>';
+
+  if(data[s]){
+    for(let i in data[s]){
+      let name=i;
+
+      // 👇 readable names
+      if(i==="B1") name="Inheritance and Variation";
+      if(i==="B2") name="Molecular Basis of Inheritance";
+
+      ch.innerHTML+=`<option value="${i}">${name}</option>`;
+    }
+  }
+}
+
+let qData=[],current=0,score=0,answered=false,timer,timeLeft=30;
+
+function startQuiz(){
+  let s=document.getElementById("subject").value;
+  let c=document.getElementById("chapter").value;
+
+  if(!s||!c){alert("Select properly");return;}
+
+  qData=data[s][c];
+  current=0;score=0;
+
+  document.getElementById("quizBox").classList.remove("hidden");
+  loadQ();
+}
+
+function startTimer(){
+  clearInterval(timer);
+  timeLeft=30;
+  document.getElementById("timer").innerText="Time: "+timeLeft;
+
+  timer=setInterval(()=>{
+    timeLeft--;
+    document.getElementById("timer").innerText="Time: "+timeLeft;
+    if(timeLeft<=0){
+      nextQuestion();
+    }
+  },1000);
+}
+
+function loadQ(){
+  answered=false;
+  startTimer();
+
+  let q=qData[current];
+  document.getElementById("question").innerText=q.q;
+
+  let html="";
+  q.options.forEach((o,i)=>{
+    html+=`<div class="option" onclick="checkAns(${i},this)">${o}</div>`;
+  });
+
+  document.getElementById("options").innerHTML=html;
+}
+
+function checkAns(i,el){
+  if(answered)return;
+  answered=true;
+
+  let correct=qData[current].ans;
+  let opts=document.querySelectorAll(".option");
+
+  opts.forEach((o,index)=>{
+    if(index===correct)o.classList.add("correct");
+  });
+
+  if(i===correct){
+    score++;
+    document.getElementById("correctSound").play();
+
+    confetti({particleCount:100,spread:70,origin:{y:0.6}});
+  } else {
+    el.classList.add("wrong");
+    document.getElementById("wrongSound").play();
+  }
+}
+
+function nextQuestion(){
+  current++;
+  if(current<qData.length){
+    loadQ();
+  } else {
+    clearInterval(timer);
+    showResult();
+  }
+}
+
+function showResult(){
+  document.getElementById("question").innerText="🎉 Finished!";
+  document.getElementById("options").innerHTML="";
+  document.getElementById("score").innerText="Score: "+score+"/"+qData.length;
+
+  let percent=(score/qData.length)*100;
+  let rank="";
+  if(percent>90) rank="🏆 AIR 1-100";
+  else if(percent>70) rank="🥇 Topper";
+  else if(percent>50) rank="🥈 Average";
+  else rank="🥉 Improve";
+
+  document.getElementById("rank").innerText="Rank: "+rank;
+}
+
+</script>
+
+</body>
+</html>
